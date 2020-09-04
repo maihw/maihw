@@ -15,6 +15,8 @@ def main(stdscr):
         '''展示游戏结束界面。
         读取用户输入得到action，判断是重启游戏还是结束游戏
         '''
+        game_field.draw(stdscr)
+        action = get_user_action(stdscr)
         responses = defaultdict(lambda:state)
         responses['Restart'], responses['Exit'] = 'Init', 'Exit'
         return responses[action]
@@ -23,13 +25,16 @@ def main(stdscr):
         '''画出当前棋盘状态
         读取用户输入得到action
         '''
+        game_field.draw(stdscr)
+        action = get_user_action(stdscr)
         if action == 'Restart':
             return 'Init'
         if action == 'Exit':
             return 'Exit'
-            if 游戏胜利了:
+        if game_field.move(action):
+            if game_field.is_win():
                 return 'Win'
-            if 游戏失败了:
+            if game_field.is_gameover():
                 return 'Gameover'
         return 'Game'
 
@@ -39,9 +44,12 @@ def main(stdscr):
             'Gameover': lambda: not_game('Gameover'),
             'Game': game
     }
+    curses.use_default_colors()
+    game_field = GameField(win=2048)
     state = 'Init'
     while state != 'Exit':
         state = state_actions[state]()
+curse.wrapper(main)
 
 def get_user_action(keyboard):
     char = 'N'
@@ -57,6 +65,35 @@ class GameField(object):
         self.win_value = 2048
         self.highscore = 0
         self.reset()
+    def draw(self, screen):
+        help_string1 = '(W)Up (S)Down (A)Left (D)Right'
+        help_string2 = '(R)Restart (Q)Exit'
+        gameover_string = 'GAME OVER'
+        win_string = 'YOU WIN!'
+        def cast(string):
+            screen.addstr(string + '\n')
+        def draw_hor_separator():
+            line = '+' + ('+----' * self.width + '+')[1:]
+            cast(line)
+        def draw_row(row):
+            cast(''.join('|{: ^5}'.format(num)
+    if num > 0 else '|' for num in row) + '|')
+            screen.clear()
+            cast('SCORE:' + str(self.score))
+            if 0 != self.highscore:
+                cast('HIGHSCORE: ' + str(self.highscore))
+            for row in self.field:
+                draw_hor_separator()
+                draw_row(row)
+            draw_hor_separator()
+            if self.is_wn():
+                cast(win_string)
+            else:
+                if self.is_gameover():
+                    cast(gameover_string)
+                else:
+                    cast(help_string1)
+            cast(help_string2)
 
 def spawn(self):
     new_element = 4 if randrange(100) > 89 else 2
@@ -126,4 +163,28 @@ def is_win(self):
 
 def is_gameover(self):
     return not any(self.move_is_possible(move) for move in actions)
+
+def move_is_possible(self, direction):
+    '''传入要移动的方向
+    判断能否向这个方向移动
+    '''
+    def row_is_left_movable(row):
+        '''判断一行里面能否有元素进行左移或合并
+        '''
+        def change(i):
+            if row[i] == 0 and row[i + 1] != 0:
+                return True
+            if row[i] != 0 and row[i + 1] == row[i]:
+                return True
+            return False
+        return any(change(i) for i in range(len(row) - 1))
+    check = {}
+    check['Left'] = lambda field: any(row_is_leftmovable(row) fro row in field)
+    check['Right'] = lambda field: check['Left'](invert(field))
+    check['Up'] = lambda field: check['Left'](transpose(field))
+    check['Down'] = lambda field: check['Right'](transpose(field))
+    if direction in check:
+        return check[direction](self.field)
+    else:
+        return False
 
