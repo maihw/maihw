@@ -48,8 +48,8 @@ def main(stdscr):
     game_field = GameField(win=2048)
     state = 'Init'
     while state != 'Exit':
-        state = state_actions[state]()
-curse.wrapper(main)
+                state = state_actions[state]()
+curses.rapper(main)
 
 def get_user_action(keyboard):
     char = 'N'
@@ -142,14 +142,10 @@ def invert(field):
 
 def move(self, direction):
     moves = {}
-    moves['Left'] = lambda field:
-        [move_row_left(row) for row in field]
-    moves['Right'] = lambda field:
-        invert(moves['Left'](invert(field)))
-    moves['Up'] = lambda field:
-        transpose(moves['Left'](transpose(field)))
-    moves['Down'] = lambda field:
-        transpose(moves['Right'](transpose(field)))
+    moves['Left'] = lambda field: [move_row_left(row) for row in field]
+    moves['Right'] = lambda field: invert(moves['Left'](invert(field)))
+    moves['Up'] = lambda field: transpose(moves['Left'](transpose(field)))
+    moves['Down'] = lambda field: transpose(moves['Right'](transpose(field)))
     if direction in moves:
         if self.move_is_possible(direction):
             self.field = moves[direction](self.field)
@@ -179,7 +175,7 @@ def move_is_possible(self, direction):
             return False
         return any(change(i) for i in range(len(row) - 1))
     check = {}
-    check['Left'] = lambda field: any(row_is_leftmovable(row) fro row in field)
+    check['Left'] = lambda field: any(row_is_leftmovable(row) for row in field)
     check['Right'] = lambda field: check['Left'](invert(field))
     check['Up'] = lambda field: check['Left'](transpose(field))
     check['Down'] = lambda field: check['Right'](transpose(field))
